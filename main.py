@@ -1,12 +1,6 @@
-import random
+
 import numpy as np
 
-
-names = ["mMohMost", "yanis", "sosso", "salfils", "mohProut", "masssiLakrimi"]
-print(f">(random.choiche) the winner is {random.choice(names)} ")
-# ? get 10 element from 0 -> 1000
-numbers = random.sample(range(0, 1000), 10)
-print(str(numbers))
 
 A = np.array([1, 2, 3, 4])
 B = np.zeros((2, 3))
@@ -16,61 +10,49 @@ D = np .random.randn(3, 4)
 n = 20
 E = np.linspace(0, 10, n)
 
-# Choose the type :
-E2 = np.linspace(0, 10,  dtype=np.float64)
-
 # create matrix 1:n  0 < x > 10 ,with step of n
 n = 0.5
 F = np.arange(0, 10, n)
 
-# Merge 2 array
-horizontalBC = np.hstack((B, C))
-verticalBC = np.vstack((B, C))
+A1 = A[0]
+B2_2 = B[1, 1]
 
-horizontalCB = np.concatenate((B, C), axis=1)  # axis 1 is horizontal
-verticalCB = np.concatenate((B, C), axis=0)  # axis 0 is vertical
+# get the first line of D
+D1_m = D[0]
 
-# resize  B
-resizeB = B.reshape((3, 2))
+# get the first col of D
+Dn_1 = D[:, 0]
 
 
-# Make One line in B
-ravelB = B.ravel()
+# create SubSetting of matrix D
+d_l2_l3__c3_c4 = D[1:4, 2:4]
+same_d_l2_l3__c3_c4 = D[-2:, -2:]
 
-print("A : \n ", A.shape)
+# create SubSetting of matrix
+G = np.zeros((4, 4))
+G[1:3, 1:3] = np.ones((2, 2))
+
+# introduce steps in matrix
+H = np.zeros((5, 5))
+H[::2, ::2] = np.ones((3, 3))
+
+# compare matrix
+I = np.random.randint(0, 10, [10, 10])
+I_highest_then_5 = I > 5
+I_10 = I
+I_10[I > 5 & I != 7] = 10
+
+print("A : \n ", A)
 print("B : \n ", B)
-print(f'size of C {C.size}')
-print("C : \n ", C)
 print("D : \n ", D)
-print("E : \n ", E)
-print("E2 : \n ", E2)
-print("F : \n ", F)
-print("horizontalBC : \n ", horizontalBC)
-print("verticalBC : \n ", verticalBC)
-print("horizontalCB : \n ", horizontalCB)
-print("verticalCB : \n ", verticalCB)
-print("resizeB : \n ", resizeB)
-print("ravelB :\n ", ravelB)
-
-
-# make an exercise
-
-"""
-    It creates a random matrix of size n x m, adds a column of ones to it, and returns the result.
-
-    :param n: number of rows
-    :param m: number of features
-    :return: A matrix of size n x m+1
-    """
-
-
-def randomArea(n, m):
-    G = np .random.randn(n, m)
-    H = np.ones((n, 1))
-    I = np.concatenate((G, H), 1)
-    return I.reshape((n, m+1))
-
-
-J = randomArea(2, 3)
-
-print("J : \n ", J)
+print("A1 : \n ", A1)
+print("B2_2 : \n ", B2_2)
+print("D1_m : \n ", D1_m)
+print("Dn_1 : \n ", Dn_1)
+print("d_l2_l3__c3_c4 : \n ", d_l2_l3__c3_c4)
+print("same_d_l2_l3__c3_c4 : \n ", same_d_l2_l3__c3_c4)
+print("G : \n ", G)
+print("H : \n ", H)
+print("I : \n ", I)
+print("I_highest_then_5 : \n ", I_highest_then_5)
+print("I_10 : \n ", I_10)
