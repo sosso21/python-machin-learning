@@ -1,33 +1,40 @@
-import matplotlib.pyplot as plt
-from scipy import misc
-import imageio
-f = misc.face(gray=True)
+import numpy as np
 
-imageio.imsave('face.png', f)  # uses the Image module (PIL)
+A = np.random.randint(0, 10, [5, 6])
+sumA = A.sum()
+sumA0 = A.sum(axis=0)  # vertical axis
+minA1 = A.min(axis=1)  # minimum horizontal axis
+argMinA1 = A.argmin(axis=1)  # argument position  minimum horizontal axis
+# we can add axis in  optional argument
+AverageA = A.mean()  # average
+stepA = A.std()  # step average
+varianceA = A.var()  # variance
 
-plt.imshow(f, cmap=plt.cm.gray)
-plt.show()
+# * Correlation function
+corrcoef = np.corrcoef(A)  # correlation coefficient between
+uniqueA = np.unique(A, return_counts=True)  # unique
 
-zoom = 1/4
-
-"""
-    It takes an image and a zoom factor and returns a zoomed image
-
-    :param f: the image
-    :param zoom: the amount of zoom you want to apply to the image
-    :return: the new image.
-    """
-
-
-def zoom(f, zoom):
-    [fx, fy] = f.shape
-    nf = f[round((fx*zoom)+1): round(-(fx*zoom)),
-           round((fy*zoom)+1):round(-(fy*zoom))]
-    return nf
+# * Linear algebra
+B = A.T  # transposed matrix A
+C = A.dot(B)  # C = A x B  matrix
+detC = np.linalg.det(C)  # determinant matrix
+invC = np.linalg.inv(C)  # ~ inverse matrix
 
 
-zf = zoom(f,  1/4)
+print("A : \n ", A)
+print("sumA : \n ", sumA)
+print("sumA0 : \n ", sumA0)
+print("minA1 : \n ", minA1)
+print("argMinA1 : \n ", argMinA1)
+print("AverageA : \n ", AverageA)
+print("stepA : \n ", stepA)
+print("varianceA : \n ", varianceA)
+print("================================")
 
-plt.imshow(zf, cmap=plt.cm.gray)
-plt.show()
-print("zf : \n", zf.shape)
+print("corrcoef : \n ", corrcoef)
+print("uniqueA : \n ", uniqueA)
+print("================================")
+print("B : \n ", B)
+print("C : \n ", C)
+print("detC : \n ", detC)
+print("invC : \n ", invC)
