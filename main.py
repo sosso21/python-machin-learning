@@ -1,58 +1,33 @@
+import matplotlib.pyplot as plt
+from scipy import misc
+import imageio
+f = misc.face(gray=True)
 
-import numpy as np
+imageio.imsave('face.png', f)  # uses the Image module (PIL)
 
+plt.imshow(f, cmap=plt.cm.gray)
+plt.show()
 
-A = np.array([1, 2, 3, 4])
-B = np.zeros((2, 3))
-C = np.ones((2, 3))
-D = np .random.randn(3, 4)
-#  create matrix 1:n , 0 < x > 10 , and generate
-n = 20
-E = np.linspace(0, 10, n)
+zoom = 1/4
 
-# create matrix 1:n  0 < x > 10 ,with step of n
-n = 0.5
-F = np.arange(0, 10, n)
+"""
+    It takes an image and a zoom factor and returns a zoomed image
 
-A1 = A[0]
-B2_2 = B[1, 1]
-
-# get the first line of D
-D1_m = D[0]
-
-# get the first col of D
-Dn_1 = D[:, 0]
+    :param f: the image
+    :param zoom: the amount of zoom you want to apply to the image
+    :return: the new image.
+    """
 
 
-# create SubSetting of matrix D
-d_l2_l3__c3_c4 = D[1:4, 2:4]
-same_d_l2_l3__c3_c4 = D[-2:, -2:]
+def zoom(f, zoom):
+    [fx, fy] = f.shape
+    nf = f[round((fx*zoom)+1): round(-(fx*zoom)),
+           round((fy*zoom)+1):round(-(fy*zoom))]
+    return nf
 
-# create SubSetting of matrix
-G = np.zeros((4, 4))
-G[1:3, 1:3] = np.ones((2, 2))
 
-# introduce steps in matrix
-H = np.zeros((5, 5))
-H[::2, ::2] = np.ones((3, 3))
+zf = zoom(f,  1/4)
 
-# compare matrix
-I = np.random.randint(0, 10, [10, 10])
-I_highest_then_5 = I > 5
-I_10 = I
-I_10[I > 5 & I != 7] = 10
-
-print("A : \n ", A)
-print("B : \n ", B)
-print("D : \n ", D)
-print("A1 : \n ", A1)
-print("B2_2 : \n ", B2_2)
-print("D1_m : \n ", D1_m)
-print("Dn_1 : \n ", Dn_1)
-print("d_l2_l3__c3_c4 : \n ", d_l2_l3__c3_c4)
-print("same_d_l2_l3__c3_c4 : \n ", same_d_l2_l3__c3_c4)
-print("G : \n ", G)
-print("H : \n ", H)
-print("I : \n ", I)
-print("I_highest_then_5 : \n ", I_highest_then_5)
-print("I_10 : \n ", I_10)
+plt.imshow(zf, cmap=plt.cm.gray)
+plt.show()
+print("zf : \n", zf.shape)
