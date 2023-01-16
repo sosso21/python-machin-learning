@@ -1,61 +1,44 @@
 
-from scipy import misc
+from scipy import ndimage, interpolate
+
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
-from mpl_toolkits.mplot3d import Axes3D
 
 
-iris = load_iris()
-x = iris.data
-y = iris.target
-names = list(iris.target_names)
+A = np .linspace(0, 10, 10)
 
-# c = color
-# alpha =  opacity
-# s = size
+A2 = A**2
+B = np .linspace(0, 10, 50)
+f = interpolate.interp1d(A, A2, kind="cubic")
+B2 = f(B)
 
-plt.scatter(x[:, 0], x[:, 1], c=y, alpha=0.9, s=x[:, 2]*10)
-plt.xlabel("hight of sepal")
-plt.ylabel("width of sepal")
-plt.show()
-
-
-################################################################
-
-
-ax = plt.axes(projection='3d')
-ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=y)
+plt.scatter(A, A2)
+plt.scatter(B, B2, c="r", s=1)
 plt.show()
 
 ################################################################
-
-"""
-    The function f takes two arguments, x and y, and returns the sum of the sine of x and the cosine of
-    x+y.
-
-    :param x: a 1D array of values for the x-axis
-    :param y: the y-coordinates of the points at which the function is evaluated
-    :return: the sum of the sine of x and the cosine of x+y.
-    """
-
-
-def f(x, y): return np.sin(x) + np.cos(x+y)
-
-
-x2 = np.linspace(0, 5, 100)
-y2 = np.linspace(0, 5, 100)
-X, Y = np.meshgrid(x2, y2)
-Z = f(X, Y)
-
-ax = plt.axes(projection='3d')
-ax.plot_surface(X, Y, Z)
+img = plt.imread("./bacterie.png")
+img = img[:, :, 0]
+plt.imshow(img, cmap='gray')
 plt.show()
 
-################################################################
-# histogram  - analyse d'une image
-
-
-f = misc.face(gray=True)
-plt.hist(f.ravel(), bins=255)
+img2 = np.copy(img)
+plt.hist(img2.ravel(), bins=255)
 plt.show()
+
+
+img = img < 0.6
+open_x = ndimage.binary_opening(img)
+plt.imshow(open_x)
+
+label_img, labels = ndimage.label(open_x)
+
+print("label : ", labels)
+plt.show()
+
+plt.imshow(label_img)
+plt.show()
+
+sizes = ndimage.sum(open_x, label_img, range(labels))
+print("sizes : \n ", sizes)
+print("sizes.shape: ", sizes.shape)
