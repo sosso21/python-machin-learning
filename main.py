@@ -1,51 +1,61 @@
+
+from scipy import misc
 import numpy as np
 import matplotlib.pyplot as plt
-
-A = np.linspace(0, 5, 40)
-B = A**2
-C = A*2
+from sklearn.datasets import load_iris
+from mpl_toolkits.mplot3d import Axes3D
 
 
-plt.plot(A, B)  # color bar
-# plt.show()
+iris = load_iris()
+x = iris.data
+y = iris.target
+names = list(iris.target_names)
 
-plt.plot(A, B, c="red")  # lint
-# plt.show()
+# c = color
+# alpha =  opacity
+# s = size
 
-plt.plot(A, B, lw=4)  # line width
-# plt.show()
-
-plt.plot(A, B, ls='--')  # line style
-# plt.show()
-
-plt.scatter(A, B)  # nuage
+plt.scatter(x[:, 0], x[:, 1], c=y, alpha=0.9, s=x[:, 2]*10)
+plt.xlabel("hight of sepal")
+plt.ylabel("width of sepal")
 plt.show()
 
 
-# ----------------------------------------------------------------
+################################################################
 
-# to initialize the figure
-plt.figure(figsize=(12, 8))
 
-plt.plot(A, B, label="x2")
-plt.plot(A, C, label='x*4')
-leg = plt.legend(loc='upper center')
-
-plt.xlabel("absis ")
-plt.ylabel("ordoées")
-
-plt.title("figure 2")
-# plt.savefig("figure.png")
+ax = plt.axes(projection='3d')
+ax.scatter(x[:, 0], x[:, 1], x[:, 2], c=y)
 plt.show()
 
 ################################################################
-# we need 2 graphs
-plt.subplot(2, 1, 1)
 
-plt.plot(A, B, label="x2")
+"""
+    The function f takes two arguments, x and y, and returns the sum of the sine of x and the cosine of
+    x+y.
+
+    :param x: a 1D array of values for the x-axis
+    :param y: the y-coordinates of the points at which the function is evaluated
+    :return: the sum of the sine of x and the cosine of x+y.
+    """
 
 
-plt.subplot(2, 1, 2)
-plt.plot(A, C, label='x*4')
+def f(x, y): return np.sin(x) + np.cos(x+y)
 
+
+x2 = np.linspace(0, 5, 100)
+y2 = np.linspace(0, 5, 100)
+X, Y = np.meshgrid(x2, y2)
+Z = f(X, Y)
+
+ax = plt.axes(projection='3d')
+ax.plot_surface(X, Y, Z)
+plt.show()
+
+################################################################
+# histogram  - analyse d'une image
+
+
+f = misc.face(gray=True)
+plt.hist(f.ravel(), bins=255)
 plt.show()
