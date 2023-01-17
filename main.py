@@ -1,52 +1,40 @@
 import numpy as np
+import matplotlib.pyplot as plt
 import pandas as pd
 
 
-data = pd.read_excel("titanic.xls")
+bitcoin = pd.read_csv('BTC-EUR.csv', index_col='Date', parse_dates=True)
+print("head : \n", bitcoin.head())
+print("shape : \n", bitcoin.shape)
 
-data = data.drop(['name', 'sibsp', 'parch', 'ticket', 'fare',
-                 'cabin', 'embarked', 'boat', 'body', 'home.dest'], axis=1)
+bitcoin['Close'].plot(figsize=(9, 6))
+plt.show()
 
-# clear when we don't have statistics
-data = data.dropna(axis=0)
+print("index : \n ", bitcoin.index)
 
-
-print(" data : \n ", data.head())
-
-print(" shape : \n ", data.shape)
-
-# basic statistics
-print(" describe() : \n ", data.describe())
+bitcoin.loc['2019', 'Close'].resample('M').plot()
+plt.show()
 
 
-print("==================================================================================")
-# valeurs des places
-print("value_counts: \n ", data['pclass'].value_counts())
+#########################################################
+#  moving averted
+plt.figure(figsize=(12, 8))
+bitcoin.loc['2019', 'Close'].plot()
+# alpha : lissage , t=t
+bitcoin.loc['2019', 'Close'].resample('M').mean().plot(
+    label='moyenne par mois', lw=3, ls=':', alpha=0.8)
+bitcoin.loc['2019', 'Close'].resample('W').mean().plot(
+    label='moyenne par semaine', lw=2, ls='--', alpha=0.8)
+plt.legend()
+plt.show()
 
-print(" group by  sex : \n ", data.groupby(['sex']).mean())
+# ETH
+ethereum = pd.read_csv('ETH-EUR.csv', index_col='Date', parse_dates=True)
 
-
-print("################################################################")
-
-
-print(" group by pclass & pclass: \n ", data.groupby(['sex', 'pclass']).mean())
-
-print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	")
-
-
-def category_ages(age):
-    if age <= 20:
-        return '-20 ans'
-    elif (age > 20) & (age <= 30):
-        return '20-30 ans'
-    elif (age > 30) & (age <= 40):
-        return '30-40 ans'
-    else:
-        return '+40 ans'
-
-
-data["age_category"] = data["age"].map(category_ages)
-
-
-print(" group by age_category & sex & pclass: \n ",
-      data.groupby(["age_category", 'sex', 'pclass']).mean())
+btc_eth = pd.merge(bitcoin, ethereum, on='Date',
+                   how='inner', suffixes=('_btc', '_eth'))
+btc_eth[['Close_btc', 'Close_eth']
+        ]['2019'].plot(subplots=True, figsize=(12, 8))
+plt.show()
+print("corrr : \n ", btc_eth[['Close_btc', 'Close_eth']
+                             ]['2019'] .corr())
