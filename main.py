@@ -1,44 +1,52 @@
-
-from scipy import ndimage, interpolate
-
 import numpy as np
-import matplotlib.pyplot as plt
+import pandas as pd
 
 
-A = np .linspace(0, 10, 10)
+data = pd.read_excel("titanic.xls")
 
-A2 = A**2
-B = np .linspace(0, 10, 50)
-f = interpolate.interp1d(A, A2, kind="cubic")
-B2 = f(B)
+data = data.drop(['name', 'sibsp', 'parch', 'ticket', 'fare',
+                 'cabin', 'embarked', 'boat', 'body', 'home.dest'], axis=1)
 
-plt.scatter(A, A2)
-plt.scatter(B, B2, c="r", s=1)
-plt.show()
-
-################################################################
-img = plt.imread("./bacterie.png")
-img = img[:, :, 0]
-plt.imshow(img, cmap='gray')
-plt.show()
-
-img2 = np.copy(img)
-plt.hist(img2.ravel(), bins=255)
-plt.show()
+# clear when we don't have statistics
+data = data.dropna(axis=0)
 
 
-img = img < 0.6
-open_x = ndimage.binary_opening(img)
-plt.imshow(open_x)
+print(" data : \n ", data.head())
 
-label_img, labels = ndimage.label(open_x)
+print(" shape : \n ", data.shape)
 
-print("label : ", labels)
-plt.show()
+# basic statistics
+print(" describe() : \n ", data.describe())
 
-plt.imshow(label_img)
-plt.show()
 
-sizes = ndimage.sum(open_x, label_img, range(labels))
-print("sizes : \n ", sizes)
-print("sizes.shape: ", sizes.shape)
+print("==================================================================================")
+# valeurs des places
+print("value_counts: \n ", data['pclass'].value_counts())
+
+print(" group by  sex : \n ", data.groupby(['sex']).mean())
+
+
+print("################################################################")
+
+
+print(" group by pclass & pclass: \n ", data.groupby(['sex', 'pclass']).mean())
+
+print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~	")
+
+
+def category_ages(age):
+    if age <= 20:
+        return '-20 ans'
+    elif (age > 20) & (age <= 30):
+        return '20-30 ans'
+    elif (age > 30) & (age <= 40):
+        return '30-40 ans'
+    else:
+        return '+40 ans'
+
+
+data["age_category"] = data["age"].map(category_ages)
+
+
+print(" group by age_category & sex & pclass: \n ",
+      data.groupby(["age_category", 'sex', 'pclass']).mean())
