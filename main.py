@@ -1,41 +1,37 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import seaborn as sns
+
+iris = sns.load_dataset('iris')
+print("iris.head() : \n", iris.head())
 
 
-bitcoin = pd.read_csv('BTC-EUR.csv', index_col='Date', parse_dates=True)
-print("head : \n", bitcoin.head())
-print("shape : \n", bitcoin.shape)
-
-bitcoin['Close'].plot(figsize=(9, 6))
-plt.show()
-
-print("index : \n ", bitcoin.index)
-
-bitcoin.loc['2019', 'Close'].resample('M').plot()
+sns.pairplot(iris, hue='species')
 plt.show()
 
 
-#########################################################
-#  moving averted
-plt.figure(figsize=(12, 8))
-bitcoin.loc['2019', 'Close'].plot()
+titanic = sns.load_dataset('titanic')
+titanic.drop(['alone', 'alive', 'who', 'adult_male',
+             'embark_town', 'class'], axis=1, inplace=True)
+titanic.dropna(axis=0, inplace=True)
 
-# alpha is opacity
-bitcoin.loc['2019', 'Close'].resample('M').mean().plot(
-    label='moyenne par mois', lw=3, ls=':', alpha=0.8)
-bitcoin.loc['2019', 'Close'].resample('W').mean().plot(
-    label='moyenne par semaine', lw=2, ls='--', alpha=0.8)
-plt.legend()
+print("titanic.head() : \n", titanic.head())
+
+sns.catplot(x='survived', y='age', data=titanic, hue='sex')
 plt.show()
 
-# ETH
-ethereum = pd.read_csv('ETH-EUR.csv', index_col='Date', parse_dates=True)
-
-btc_eth = pd.merge(bitcoin, ethereum, on='Date',
-                   how='inner', suffixes=('_btc', '_eth'))
-btc_eth[['Close_btc', 'Close_eth']
-        ]['2019'].plot(subplots=True, figsize=(12, 8))
+sns.boxplot(x='survived', y='age', data=titanic, hue='sex')
 plt.show()
-print("corrr : \n ", btc_eth[['Close_btc', 'Close_eth']
-                             ]['2019'] .corr())
+
+# plt.figure(figsize=(8, 8))
+# sns.boxplot(x='age', y='fare', data=titanic, hue='sex')
+# plt.show()
+
+
+sns.jointplot(x='age', y='fare', data=titanic, kind="hex")
+
+plt.show()
+
+sns.heatmap(titanic.corr())
+plt.show()
