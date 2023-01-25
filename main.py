@@ -20,7 +20,8 @@ plt.show()
 #  moving averted
 plt.figure(figsize=(12, 8))
 bitcoin.loc['2019', 'Close'].plot()
-# alpha : lissage , t=t
+
+# alpha is opacity
 bitcoin.loc['2019', 'Close'].resample('M').mean().plot(
     label='moyenne par mois', lw=3, ls=':', alpha=0.8)
 bitcoin.loc['2019', 'Close'].resample('W').mean().plot(
