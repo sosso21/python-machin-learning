@@ -1,49 +1,85 @@
+from sklearn.model_selection import learning_curve
+from sklearn.metrics import confusion_matrix
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import validation_curve
+from sklearn.model_selection import cross_val_score
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.model_selection import train_test_split
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.linear_model import LinearRegression
-
-np.random.seed(0)
-m = 100  # creation de 100 échantillons
-X = np.linspace(0, 10, m).reshape(m, 1)
-y = X + np.random.randn(m, 1)
+from sklearn.datasets import load_iris
 
 
-model = LinearRegression()
-model.fit(X, y)  # entrainement du modele
-# évaluation avec le coefficient de corrélation
-print("score : ", model.score(X, y) * 100)
+iris = load_iris()
+X = iris.data
+y = iris.target
 
+print("X: \n", X.shape)
 
-plt.scatter(X, y)
-plt.plot(X, model.predict(X), c='red')
+plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8)
+plt.show()
+# learn
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2)
+
+print('Train set:', X_train.shape)
+print('Test set:', X_test.shape)
+
+plt.figure(figsize=(12, 4))
+plt.subplot(121)
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, alpha=0.8)
+plt.title('Train set')
+plt.subplot(122)
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, alpha=0.8)
+plt.title('Test set')
 
 plt.show()
 
 
-# lean with titanic
+model = KNeighborsClassifier(n_neighbors=1)
 
-titanic = sns.load_dataset('titanic')
-titanic = titanic[['survived', 'pclass', 'sex', 'age']]
-titanic.dropna(axis=0, inplace=True)
-titanic['sex'].replace(['female', 'male'], [0, 1], inplace=True)
-print("titanic : \n ", titanic.head())
+model.fit(X_train, y_train)
 
-model = KNeighborsClassifier()
-y = titanic['survived']
-X = titanic.drop('survived', axis=1)
-model.fit(X, y)  # entrainement du modele
-print("score: ", model.score(X, y))  # évaluation
+print('train score:', model.score(X_train, y_train))
+print('test score:', model.score(X_test, y_test))
 
-
-def survie(model, pclass=3, sex=1, age=24):
-    x = np.array([pclass, sex, age]).reshape(1, 3)
-    print("predict : \n", model.predict(x))
-    print("predict_proba : \n", model.predict_proba(x))
+# VALIDATION Set
+model = KNeighborsClassifier(10)
+cross_validation_mean = cross_val_score(
+    model, X_train, y_train, cv=5, scoring='accuracy').mean()
+print("cross_validation", cross_validation_mean)
+print("================================================")
 
 
-survie(model)
+# trouver le meilleur KNeighborsClassifier
 
-# woman like Zhu
-survie(model, pclass=2, sex=0, age=27)
+param_grid = {'n_neighbors': np.arange(1, 20),
+              'metric': ['euclidean', 'manhattan']}
+
+grid = GridSearchCV(KNeighborsClassifier(), param_grid, cv=5)
+
+grid.fit(X_train, y_train)
+
+
+print("best_score_ : \n ", grid.best_score_)
+print("best_params_ : \n ", grid.best_params_)
+
+model = grid.best_estimator_
+
+print("model.score : \n ", model.score(X_test, y_test))
+
+
+print("confusion_matrix : \n ", confusion_matrix(y_test, model.predict(X_test)))
+
+print("======== courbe d'apprentissage =============")
+
+N, train_score, val_score = learning_curve(
+    model, X_train, y_train, train_sizes=np.linspace(0.1, 1, 10), cv=5)
+
+print("N : ", N)
+plt.plot(N, train_score.mean(axis=1), label='train')
+plt.plot(N, val_score.mean(axis=1), label='validation')
+plt.xlabel('train_sizes')
+plt.legend()
+plt.show()
