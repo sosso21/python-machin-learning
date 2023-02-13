@@ -1,16 +1,16 @@
-Métriques sur le jeu de validation:
+Mï¿½triques sur le jeu de validation:
 Erreur absolue moyenne:  3.845175240890268
 Erreur quadratique moyenne:  34.86211661084378
 Score R^2:  0.5923142610729992
 
  
  
-Métriques sur le jeu de test:
+Mï¿½triques sur le jeu de test:
 Erreur absolue moyenne:  3.5167363908383504
 Erreur quadratique moyenne:  25.63262616471184
 Score R^2:  0.6792759689178107
 
  
  
-Meilleure combinaison de paramètres trouvée:  {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 7, 'p': 1, 'weights': 'distance'}
+Meilleure combinaison de paramï¿½tres trouvï¿½e:  {'algorithm': 'auto', 'leaf_size': 1, 'n_neighbors': 7, 'p': 1, 'weights': 'distance'}
 Meilleure Score :  0.6293406251498063
