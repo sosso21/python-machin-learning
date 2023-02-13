@@ -92,5 +92,5 @@ plt.ylabel("Valeurs prédites")
 plt.title("Métriques d'évaluation sur le jeu de test")
 
 
-plt.show()
+# plt.show()
 plt.savefig('figure.png')
