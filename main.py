@@ -24,8 +24,8 @@ X_train, X_val, y_train, y_val = train_test_split(
 # Définition de la grille de paramètres à parcourir
 param_grid = [{'n_neighbors': range(1, 30),               'weights': ['uniform', 'distance'],
                'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-               'p': [1, 2, 3],
-               'leaf_size':  [1, 5, 10]
+               'p': [1],  # range(1, 5),
+               'leaf_size':[1]  # range(0, 50)
                }
               ]
 
