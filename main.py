@@ -1,96 +1,134 @@
-# Séparation des données en jeux d'entraînement et de test
-from sklearn.model_selection import learning_curve
+from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import SGDClassifier
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import Binarizer, KBinsDiscretizer
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler
+from sklearn.datasets import load_iris
 import numpy as np
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.neighbors import KNeighborsRegressor
-from sklearn.model_selection import train_test_split, GridSearchCV
 import matplotlib.pyplot as plt
-import seaborn as sns
-import pandas as pd
+from sklearn.preprocessing import LabelEncoder, LabelBinarizer, OrdinalEncoder, OneHotEncoder
+
+y = ["Sosso", "moh Most", "yanis", "Sosso"]
+encoder = LabelEncoder()
+Y = encoder.fit_transform(y)
+yy = encoder.inverse_transform(np.array(Y))
+print("y: \n ", y)
+print("Y: \n", Y)
+print("yy: \n", yy)
+
+# ? for more complex data :
+x = np.array([['chat', 'poils'],
+              ['chien', 'poils'],
+              ['chat', 'poils'],
+              ['oiseau', 'plumes']])
+
+encoder = OrdinalEncoder()
+X = encoder.fit_transform(x)
+xx = encoder.inverse_transform(np.array(X))
 
 
-# Load the Boston Housing data from a CSV file
-boston = pd.read_csv("Boston.csv")
+print("x: \n ", x)
+print("x: \n", X)
+print("xx: \n", xx)
+
+# ? on encode  sans impliquer que un chat < chien
+encoder = OneHotEncoder()
+X = encoder.fit_transform(X)
+
+print("x: \n", X)
 
 
-X_train, X_test, y_train, y_test = train_test_split(boston.drop(
-    "medv", axis=1), boston["medv"], test_size=0.2)
+# * NORMALISATION
 
-# Séparation du jeu d'entraînement en jeux d'entraînement et de validation
-# we can add  random_state=0
-X_train, X_val, y_train, y_val = train_test_split(
-    X_train, y_train, test_size=0.2)
+iris = load_iris()
+X = iris.data
 
-# Définition de la grille de paramètres à parcourir
-param_grid = [{'n_neighbors': range(1, 30),               'weights': ['uniform', 'distance'],
-               'algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute'],
-               'p': [1],  # range(1, 5),
-               'leaf_size':[1]  # range(0, 50)
-               }
-              ]
+X_minmax = MinMaxScaler().fit_transform(X)
 
+X_stdscl = StandardScaler().fit_transform(X)
 
-# Entraînement du modèle KNeighborsRegressor avec GridSearchCV
-grid = GridSearchCV(KNeighborsRegressor(), param_grid, cv=5)
-grid.fit(X_train, y_train)
-model = grid.best_estimator_
+X_robust = RobustScaler().fit_transform(X)
 
+plt.scatter(X[:, 2], X[:, 3],   c="green")
 
-# Prédiction sur les données de validation
-y_val_pred = model.predict(X_val)
+plt.scatter(X_minmax[:, 2], X_minmax[:, 3], c="red")
 
-# Calcul des métriques d'évaluation sur les données de validation
-mae = mean_absolute_error(y_val, y_val_pred)
-mse = mean_squared_error(y_val, y_val_pred)
-r2 = r2_score(y_val, y_val_pred)
+plt.scatter(X_stdscl[:, 2], X_stdscl[:, 3], c="yellow")
 
-# Affichage des métriques d'évaluation sur les données de validation
-print("Métriques sur le jeu de validation:")
-print("Erreur absolue moyenne: ", mae)
-print("Erreur quadratique moyenne: ", mse)
-print("Score R^2: ", r2)
-print("\n \n ")
+plt.scatter(X_robust[:, 2], X_robust[:, 3], c="black")
 
-# Tracé des métriques d'évaluation sur les données de validation
-
-plt.subplot(1, 2, 1)
-sns.scatterplot(x=y_val, y=y_val_pred)
-sns.lineplot(x=y_val, y=y_val, c="red", label="Valeurs réelles")
-plt.xlabel("Valeurs réelles")
-plt.ylabel("Valeurs prédites")
-plt.title("Métriques d'évaluation sur le jeu de validation")
+plt.show()
 
 
-# Prédiction sur les données de test
-y_test_pred = model.predict(X_test)
+# * Polynomial Features
 
-# Calcul des métriques d'évaluation sur les données de test
-mae = mean_absolute_error(y_test, y_test_pred)
-mse = mean_squared_error(y_test, y_test_pred)
-r2 = r2_score(y_test, y_test_pred)
+m = 100
+X = np.linspace(0, 4, m).reshape((m, 1))
+y = X**2 + 5*np.cos(X) + np.random.randn(m, 1)
 
-# Affichage des métriques d'évaluation sur les données de test
-print("Métriques sur le jeu de test:")
-print("Erreur absolue moyenne: ", mae)
-print("Erreur quadratique moyenne: ", mse)
-print("Score R^2: ", r2)
-print("\n \n ")
+model = LinearRegression().fit(X, y)
+y_pred = model.predict(X)
+
+plt.scatter(X, y)
+plt.plot(X, y_pred, c='r', lw=3)
+
+plt.show()
 
 
-print("Meilleure combinaison de paramètres trouvée: ", grid.best_params_)
-print("Meilleure Score : ", grid.best_score_)
+X_poly = PolynomialFeatures(3).fit_transform(X)
+model = LinearRegression().fit(X_poly, y)
+y_pred = model.predict(X_poly)
 
-# Tracé des métriques d'évaluation sur les données de test
-
-plt.subplot(1, 2, 2)
-
-sns.scatterplot(x=y_test, y=y_test_pred)
-sns.lineplot(x=y_val, y=y_val, c="red", label="Valeurs réelles")
-
-plt.xlabel("Valeurs réelles")
-plt.ylabel("Valeurs prédites")
-plt.title("Métriques d'évaluation sur le jeu de test")
+plt.scatter(X, y)
+plt.plot(X, y_pred, c='r', lw=3)
 
 
 plt.show()
-plt.savefig('figure.png')
+
+
+# * Discretisation
+
+X = np.linspace(0, 5, 10).reshape((10, 1))
+
+a = np.hstack((X,
+
+               Binarizer(threshold=3).fit_transform(X)))
+
+b = KBinsDiscretizer(n_bins=6).fit_transform(X).toarray()
+
+
+print("a: \n", a)
+print("b: \n", b)
+
+
+# * PipeLine
+
+X = iris.data
+y = iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+
+model = make_pipeline(StandardScaler(), SGDClassifier())
+
+model.fit(X_train, y_train)
+score = model.score(X_test, y_test)
+
+print("score: \n", score)
+
+
+model = make_pipeline(PolynomialFeatures(),
+                      StandardScaler(), SGDClassifier(random_state=0))
+params = {
+    'polynomialfeatures__degree': [2, 3, 4],
+    'sgdclassifier__penalty': ['l1', 'l2']
+}
+
+grid = GridSearchCV(model, param_grid=params, cv=4)
+
+grid.fit(X_train, y_train)
+score = grid.score(X_test, y_test)
+
+print("score: \n", score)
