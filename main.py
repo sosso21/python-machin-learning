@@ -1,83 +1,120 @@
-from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.pipeline import make_pipeline
-from sklearn.pipeline import make_union
-from sklearn.impute import MissingIndicator
-from sklearn.impute import KNNImputer
+from sklearn.feature_selection import SelectFromModel
+from sklearn.linear_model import SGDClassifier
+from sklearn.feature_selection import RFECV
+from sklearn.feature_selection import SelectKBest, chi2, f_classif
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
-from sklearn.linear_model import SGDClassifier
-from sklearn.impute import SimpleImputer
+from sklearn.feature_selection import VarianceThreshold
 
-# * SImpleImputer
+from sklearn.datasets import load_iris
 
-X = np.array([[10, 3],
-              [0, 4],
-              [5, 3],
-             [np.nan, 3]])
+iris = load_iris()
+X = iris.data
+y = iris.target
 
-imputer = SimpleImputer(missing_values=np.nan,
-                        strategy='mean')
+# * SELECTION des variables de plus de 0.2 de variance
 
-imputer.fit_transform(X)
+# plt.plot(X)
+# plt.legend(iris.feature_names)
 
-
-X_test = np.array([[12, 5],
-                   [40, 2],
-                   [5, 5],
-                   [np.nan, np.nan]])
-
-print("x: \n ", X)
-print("X_test: \n", imputer.transform(X_test))
+# plt.show()
 
 
-# * KNImputer
+print("X.var: \n", X.var(axis=0))
 
-X = np.array([[1, 100],
-             [2, 30],
-             [3, 15],
-             [np.nan, 20]])
+selector = VarianceThreshold(threshold=0.2)
+selector.fit(X)
+print("selector: \n ", selector.get_support())
 
-imputer = KNNImputer(n_neighbors=1)
-print("imputer.fit_transform(X): \n ", imputer.fit_transform(X))
+print("np.array :\n", np.array(iris.feature_names)[selector.get_support()])
 
-X_test = np.array([[np.nan, 35]])
-
-print("imputer.transform(X_test): \n", imputer.transform(X_test))
+print("selector :\n", selector.variances_)
 
 
-# * MissingIndicator
+# * f_classif
+print("=========\n f_classif\n =========")
+chi2(X, y)
 
-X = np.array([[1, 100],
-             [2, 30],
-             [3, 15],
-             [np.nan, np.nan]])
+selector = SelectKBest(f_classif, k=2)
+selector.fit(X, y)
+print("selector.scores_ : \n", selector.scores_)
 
-MissingIndicator().fit_transform(X)
-
-
-pipeline = make_union(SimpleImputer(strategy='constant', fill_value=-99),
-                      MissingIndicator())
-
-print("pipeline.fit_transform(X): \n", pipeline.fit_transform(X))
-
-# * Application
-
-print("===================\n \n ")
-
-titanic = sns.load_dataset('titanic')
-X = titanic[['pclass', 'age']]
-y = titanic['survived']
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=0)
+print("get_support: \n ", np.array(iris.feature_names)[selector.get_support()])
 
 
-model = make_pipeline(KNNImputer(), SGDClassifier())
+# * recursive feature estimator
 
-params = {'knnimputer__n_neighbors': [1, 2, 3, 4]}
+print("==========\n \n recursive feature estimator \n =========================\n \n ")
 
-grid = GridSearchCV(model, param_grid=params, cv=5)
+selector = RFECV(SGDClassifier(random_state=0), step=1,
+                 min_features_to_select=2, cv=5)
+selector.fit(X, y)
+print("ranking_: \n", selector.ranking_)
+# print("grid_scores_: \n", selector.grid_scores_)
 
-grid.fit(X_train, y_train)
-grid.best_params_
+get_support = np.array(iris.feature_names)[selector.get_support()]
+print("get_support: \n ", get_support)
+
+# * Select from model
+print("==========\n \n  Select from model \n =========================\n \n ")
+
+
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# * SELECTION des variables de plus de 0.2 de variance
+
+# plt.plot(X)
+# plt.legend(iris.feature_names)
+
+# plt.show()
+
+
+print("X.var: \n", X.var(axis=0))
+
+selector = VarianceThreshold(threshold=0.2)
+selector.fit(X)
+print("selector: \n ", selector.get_support())
+
+print("np.array :\n", np.array(iris.feature_names)[selector.get_support()])
+
+print("selector :\n", selector.variances_)
+
+
+# * f_classif
+print("=========\n f_classif\n =========")
+chi2(X, y)
+
+selector = SelectKBest(f_classif, k=2)
+selector.fit(X, y)
+print("selector.scores_ : \n", selector.scores_)
+
+print("get_support: \n ", np.array(iris.feature_names)[selector.get_support()])
+
+
+# * recursive feature estimator
+
+print("==========\n \n recursive feature estimator \n =========================\n \n ")
+
+selector = RFECV(SGDClassifier(random_state=0), step=1,
+                 min_features_to_select=2, cv=5)
+selector.fit(X, y)
+print("ranking_: \n", selector.ranking_)
+# print("grid_scores_: \n", selector.grid_scores_)
+
+get_support = np.array(iris.feature_names)[selector.get_support()]
+print("get_support: \n ", get_support)
+
+# * Select from model
+print("==========\n \n  Select from model \n =========================\n \n ")
+
+
+X = iris.data
+y = iris.target
+selector = SelectFromModel(SGDClassifier(random_state=0), threshold='mean')
+selector.fit(X, y)
+print("coef : \n", selector.estimator_.coef_)
+
+print("get_support: \n", np.array(iris.feature_names)[selector.get_support()])
