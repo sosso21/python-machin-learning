@@ -1,120 +1,122 @@
-from sklearn.feature_selection import SelectFromModel
-from sklearn.linear_model import SGDClassifier
-from sklearn.feature_selection import RFECV
-from sklearn.feature_selection import SelectKBest, chi2, f_classif
+from sklearn.decomposition import PCA
+from sklearn.datasets import load_digits
+from sklearn.ensemble import IsolationForest
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
-from sklearn.feature_selection import VarianceThreshold
+from sklearn.datasets import make_blobs
 
-from sklearn.datasets import load_iris
+from sklearn.cluster import KMeans
 
-iris = load_iris()
-X = iris.data
-y = iris.target
+# * cluster
 
-# * SELECTION des variables de plus de 0.2 de variance
+# Génération de données
+X, y = make_blobs(n_samples=100, centers=3, cluster_std=0.4, random_state=0)
+plt.scatter(X[:, 0], X[:, 1])
+plt.show()
 
-# plt.plot(X)
-# plt.legend(iris.feature_names)
+model = KMeans(n_clusters=3)
+model.fit(X)
+model.predict(X)
+plt.scatter(X[:, 0], X[:, 1], c=model.predict(X))
+plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c='r')
+plt.show()
+print("score: \n", model.score(X))
 
-# plt.show()
+# * Elbow method
 
+inertia = []
+K_range = range(1, 20)
+for k in K_range:
+    model = KMeans(n_clusters=k).fit(X)
+    inertia.append(model.inertia_)
 
-print("X.var: \n", X.var(axis=0))
-
-selector = VarianceThreshold(threshold=0.2)
-selector.fit(X)
-print("selector: \n ", selector.get_support())
-
-print("np.array :\n", np.array(iris.feature_names)[selector.get_support()])
-
-print("selector :\n", selector.variances_)
-
-
-# * f_classif
-print("=========\n f_classif\n =========")
-chi2(X, y)
-
-selector = SelectKBest(f_classif, k=2)
-selector.fit(X, y)
-print("selector.scores_ : \n", selector.scores_)
-
-print("get_support: \n ", np.array(iris.feature_names)[selector.get_support()])
+plt.plot(K_range, inertia)
+plt.xlabel('nombre de clusters')
+plt.ylabel('Cout du modele (Inertia)')
+plt.show()
 
 
-# * recursive feature estimator
+# * IsolationForest
 
-print("==========\n \n recursive feature estimator \n =========================\n \n ")
-
-selector = RFECV(SGDClassifier(random_state=0), step=1,
-                 min_features_to_select=2, cv=5)
-selector.fit(X, y)
-print("ranking_: \n", selector.ranking_)
-# print("grid_scores_: \n", selector.grid_scores_)
-
-get_support = np.array(iris.feature_names)[selector.get_support()]
-print("get_support: \n ", get_support)
-
-# * Select from model
-print("==========\n \n  Select from model \n =========================\n \n ")
+X, y = make_blobs(n_samples=50, centers=1, cluster_std=0.1, random_state=0)
+X[-1, :] = np.array([2.25, 5])
 
 
-iris = load_iris()
-X = iris.data
-y = iris.target
+model = IsolationForest(contamination=0.01)
+model.fit(X)
 
-# * SELECTION des variables de plus de 0.2 de variance
+plt.scatter(X[:, 0], X[:, 1], c=model.predict(X))
+plt.show()
 
-# plt.plot(X)
-# plt.legend(iris.feature_names)
+# * Application:  Digits outliers
 
-# plt.show()
+digits = load_digits()
+images = digits.images
+X = digits.data
+y = digits.target
 
-
-print("X.var: \n", X.var(axis=0))
-
-selector = VarianceThreshold(threshold=0.2)
-selector.fit(X)
-print("selector: \n ", selector.get_support())
-
-print("np.array :\n", np.array(iris.feature_names)[selector.get_support()])
-
-print("selector :\n", selector.variances_)
+plt.imshow(images[0])
+plt.show()
 
 
-# * f_classif
-print("=========\n f_classif\n =========")
-chi2(X, y)
+model = IsolationForest(random_state=0, contamination=0.02)
+model.fit(X)
+outliers = model.predict(X) == -1
 
-selector = SelectKBest(f_classif, k=2)
-selector.fit(X, y)
-print("selector.scores_ : \n", selector.scores_)
+plt.figure(figsize=(12, 3))
+for i in range(10):
+    plt.subplot(1, 10, i+1)
+    plt.imshow(images[outliers][i])
+    plt.title(y[outliers][i])
 
-print("get_support: \n ", np.array(iris.feature_names)[selector.get_support()])
+plt.show()
 
+# * PCA : Reduction des dimension
 
-# * recursive feature estimator
+model = PCA(n_components=2)
+model.fit(X)
 
-print("==========\n \n recursive feature estimator \n =========================\n \n ")
-
-selector = RFECV(SGDClassifier(random_state=0), step=1,
-                 min_features_to_select=2, cv=5)
-selector.fit(X, y)
-print("ranking_: \n", selector.ranking_)
-# print("grid_scores_: \n", selector.grid_scores_)
-
-get_support = np.array(iris.feature_names)[selector.get_support()]
-print("get_support: \n ", get_support)
-
-# * Select from model
-print("==========\n \n  Select from model \n =========================\n \n ")
+x_pca = model.transform(X)
+plt.scatter(x_pca[:, 0], x_pca[:, 1], c=y)
+plt.show()
 
 
-X = iris.data
-y = iris.target
-selector = SelectFromModel(SGDClassifier(random_state=0), threshold='mean')
-selector.fit(X, y)
-print("coef : \n", selector.estimator_.coef_)
+plt.figure()
+plt.xlim(-30, 30)
+plt.ylim(-30, 30)
 
-print("get_support: \n", np.array(iris.feature_names)[selector.get_support()])
+for i in range(100):
+    plt.text(x_pca[i, 0], x_pca[i, 1], str(y[i]))
+
+plt.show()
+
+# * compression de donnée
+
+n_dims = X.shape[1]
+model = PCA(n_components=n_dims)
+model.fit(X)
+
+variances = model.explained_variance_ratio_
+
+meilleur_dims = np.argmax(np.cumsum(variances) > 0.90)
+
+
+plt.bar(range(n_dims), np.cumsum(variances))
+plt.hlines(0.90, 0, meilleur_dims, colors='r')
+plt.vlines(meilleur_dims, 0, 0.90, colors='r')
+plt.show()
+
+model = PCA(n_components=0.99)
+model.fit(X)
+
+X_compress = model.fit_transform(X)
+X_decompress = model.inverse_transform(X_compress)
+
+plt.subplot(1, 2, 1)
+plt.imshow(X[0, :].reshape((8, 8)), cmap='gray')
+plt.title('originel')
+plt.subplot(1, 2, 2)
+plt.imshow(X_decompress[0, :].reshape((8, 8)), cmap='gray')
+plt.title('Compressé')
+
+plt.show()
