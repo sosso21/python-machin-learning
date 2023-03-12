@@ -1,122 +1,91 @@
-from sklearn.decomposition import PCA
-from sklearn.datasets import load_digits
-from sklearn.ensemble import IsolationForest
+from sklearn.ensemble import StackingClassifier
+from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
+from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
+from sklearn.ensemble import VotingClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import SGDClassifier
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
 
-from sklearn.cluster import KMeans
+from matplotlib.colors import ListedColormap
 
-# * cluster
 
-# Génération de données
-X, y = make_blobs(n_samples=100, centers=3, cluster_std=0.4, random_state=0)
-plt.scatter(X[:, 0], X[:, 1])
+def plot_decision_boundary(clf, X, y, axes=[-1.5, 2.45, -1, 1.5], alpha=0.5, contour=True):
+
+    h = .02
+    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                         np.arange(y_min, y_max, h))
+
+    Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, alpha=.5)
+    plt.show()
+
+    plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8, edgecolors='k')
+    plt.show()
+
+
+X, y = make_moons(n_samples=500, noise=0.3, random_state=0)
+plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8)
+plt.show()
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=0)
+
+#  *VOTING classifier
+
+model_1 = SGDClassifier(random_state=0)
+model_2 = DecisionTreeClassifier(random_state=0)
+model_3 = KNeighborsClassifier(n_neighbors=2)
+
+model_4 = VotingClassifier([('SGD', model_1),
+                            ('Tree', model_2),
+                            ('KNN', model_3)],
+                           voting='hard')
+
+for model in (model_1, model_2, model_3, model_4):
+    model.fit(X_train, y_train)
+    print(model.__class__.__name__, model.score(X_test, y_test))
+
+# * BaggingClassifier
+
+model = BaggingClassifier(base_estimator=KNeighborsClassifier(),
+                          n_estimators=100)
+
+model.fit(X_train, y_train)
+print('BaggingClassifier: \n ', model.score(X_test, y_test))
+
+
+model = RandomForestClassifier(n_estimators=100)
+
+model.fit(X_train, y_train)
+print('RandomForestClassifier: \n ', model.score(X_test, y_test))
+
+
+plot_decision_boundary(model, X_train, y_train)
 plt.show()
 
-model = KMeans(n_clusters=3)
-model.fit(X)
-model.predict(X)
-plt.scatter(X[:, 0], X[:, 1], c=model.predict(X))
-plt.scatter(model.cluster_centers_[:, 0], model.cluster_centers_[:, 1], c='r')
-plt.show()
-print("score: \n", model.score(X))
-
-# * Elbow method
-
-inertia = []
-K_range = range(1, 20)
-for k in K_range:
-    model = KMeans(n_clusters=k).fit(X)
-    inertia.append(model.inertia_)
-
-plt.plot(K_range, inertia)
-plt.xlabel('nombre de clusters')
-plt.ylabel('Cout du modele (Inertia)')
-plt.show()
+# * GradientBoostingClassifier
 
 
-# * IsolationForest
+model = AdaBoostClassifier(n_estimators=100)
+model.fit(X_train, y_train)
+print('AdaBoostClassifier: \n ', model.score(X_test, y_test))
 
-X, y = make_blobs(n_samples=50, centers=1, cluster_std=0.1, random_state=0)
-X[-1, :] = np.array([2.25, 5])
+plot_decision_boundary(model, X_train, y_train)
 
+# * Stacking
+model = StackingClassifier([('SGD', model_1),
+                            ('Tree', model_2),
+                            ('KNN', model_3)],
+                           final_estimator=KNeighborsClassifier())
 
-model = IsolationForest(contamination=0.01)
-model.fit(X)
-
-plt.scatter(X[:, 0], X[:, 1], c=model.predict(X))
-plt.show()
-
-# * Application:  Digits outliers
-
-digits = load_digits()
-images = digits.images
-X = digits.data
-y = digits.target
-
-plt.imshow(images[0])
-plt.show()
+model.fit(X_train, y_train)
+print('StackingClassifier: \n ', model.score(X_test, y_test))
 
 
-model = IsolationForest(random_state=0, contamination=0.02)
-model.fit(X)
-outliers = model.predict(X) == -1
-
-plt.figure(figsize=(12, 3))
-for i in range(10):
-    plt.subplot(1, 10, i+1)
-    plt.imshow(images[outliers][i])
-    plt.title(y[outliers][i])
-
-plt.show()
-
-# * PCA : Reduction des dimension
-
-model = PCA(n_components=2)
-model.fit(X)
-
-x_pca = model.transform(X)
-plt.scatter(x_pca[:, 0], x_pca[:, 1], c=y)
-plt.show()
-
-
-plt.figure()
-plt.xlim(-30, 30)
-plt.ylim(-30, 30)
-
-for i in range(100):
-    plt.text(x_pca[i, 0], x_pca[i, 1], str(y[i]))
-
-plt.show()
-
-# * compression de donnée
-
-n_dims = X.shape[1]
-model = PCA(n_components=n_dims)
-model.fit(X)
-
-variances = model.explained_variance_ratio_
-
-meilleur_dims = np.argmax(np.cumsum(variances) > 0.90)
-
-
-plt.bar(range(n_dims), np.cumsum(variances))
-plt.hlines(0.90, 0, meilleur_dims, colors='r')
-plt.vlines(meilleur_dims, 0, 0.90, colors='r')
-plt.show()
-
-model = PCA(n_components=0.99)
-model.fit(X)
-
-X_compress = model.fit_transform(X)
-X_decompress = model.inverse_transform(X_compress)
-
-plt.subplot(1, 2, 1)
-plt.imshow(X[0, :].reshape((8, 8)), cmap='gray')
-plt.title('originel')
-plt.subplot(1, 2, 2)
-plt.imshow(X_decompress[0, :].reshape((8, 8)), cmap='gray')
-plt.title('Compressé')
-
-plt.show()
+plot_decision_boundary(model, X_train, y_train)
