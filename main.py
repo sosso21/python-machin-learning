@@ -1,91 +1,120 @@
-from sklearn.ensemble import StackingClassifier
-from sklearn.ensemble import AdaBoostClassifier, GradientBoostingClassifier
-from sklearn.ensemble import BaggingClassifier, RandomForestClassifier
-from sklearn.ensemble import VotingClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.linear_model import SGDClassifier
-import numpy as np
+import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn.datasets import make_moons
-from sklearn.model_selection import train_test_split
-
-from matplotlib.colors import ListedColormap
+import pandas as pd
+import numpy as np
 
 
-def plot_decision_boundary(clf, X, y, axes=[-1.5, 2.45, -1, 1.5], alpha=0.5, contour=True):
-
-    h = .02
-    x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
-    y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-
-    Z = clf.predict_proba(np.c_[xx.ravel(), yy.ravel()])[:, 1]
-    Z = Z.reshape(xx.shape)
-    plt.contourf(xx, yy, Z, alpha=.5)
-    plt.show()
-
-    plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8, edgecolors='k')
-    plt.show()
+pd.set_option('display.max_row', 111)
+pd.set_option('display.max_column', 111)
 
 
-X, y = make_moons(n_samples=500, noise=0.3, random_state=0)
-plt.scatter(X[:, 0], X[:, 1], c=y, alpha=0.8)
-plt.show()
-X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.3, random_state=0)
-
-#  *VOTING classifier
-
-model_1 = SGDClassifier(random_state=0)
-model_2 = DecisionTreeClassifier(random_state=0)
-model_3 = KNeighborsClassifier(n_neighbors=2)
-
-model_4 = VotingClassifier([('SGD', model_1),
-                            ('Tree', model_2),
-                            ('KNN', model_3)],
-                           voting='hard')
-
-for model in (model_1, model_2, model_3, model_4):
-    model.fit(X_train, y_train)
-    print(model.__class__.__name__, model.score(X_test, y_test))
-
-# * BaggingClassifier
-
-model = BaggingClassifier(base_estimator=KNeighborsClassifier(),
-                          n_estimators=100)
-
-model.fit(X_train, y_train)
-print('BaggingClassifier: \n ', model.score(X_test, y_test))
+url = './covid_dataset.csv'
+data = pd.read_csv(url, index_col=0, encoding="ISO-8859-1")
 
 
-model = RandomForestClassifier(n_estimators=100)
+# print('data.head : \n', data.head())
 
-model.fit(X_train, y_train)
-print('RandomForestClassifier: \n ', model.score(X_test, y_test))
+# ** ======================= **
+print("======================== \n \n ")
 
+df = data.copy()
+print("shape: \n", df.shape)
 
-plot_decision_boundary(model, X_train, y_train)
+df.dtypes.value_counts().plot.pie()
 plt.show()
 
-# * GradientBoostingClassifier
+# plt.figure(figsize=(20, 10))
+# sns.heatmap(df.isna(), cbar=False)
+# plt.show()
+
+df = df[df.columns[df.isna().sum()/df.shape[0] < 0.9]]
 
 
-model = AdaBoostClassifier(n_estimators=100)
-model.fit(X_train, y_train)
-print('AdaBoostClassifier: \n ', model.score(X_test, y_test))
-
-plot_decision_boundary(model, X_train, y_train)
-
-# * Stacking
-model = StackingClassifier([('SGD', model_1),
-                            ('Tree', model_2),
-                            ('KNN', model_3)],
-                           final_estimator=KNeighborsClassifier())
-
-model.fit(X_train, y_train)
-print('StackingClassifier: \n ', model.score(X_test, y_test))
+# Drop the 'Patient ID' column
+#  df = df.drop('Patient ID', axis=1)
 
 
-plot_decision_boundary(model, X_train, y_train)
+print("\n repartition : \n ",
+      df['SARS-Cov-2 exam result'].value_counts(normalize=True))
+
+
+# Create a figure with multiple subplots
+fig, axs = plt.subplots(nrows=4, ncols=4, figsize=(10, 8))
+
+# Flatten the 2D array of subplots into a 1D array
+axs = axs.flatten()
+
+# Loop over each float column in df and create a subplot with a distribution plot
+for i, col in enumerate(df.select_dtypes('float')):
+    sns.histplot(df[col],   kde=True, stat="density", ax=axs[i])
+    axs[i].set_title(col)
+
+
+sns.histplot(df['Patient age quantile'],   kde=True, stat="density",  bins=20)
+axs[i].set_title('Patient age quantile')
+
+# Adjust spacing between subplots
+plt.tight_layout()
+
+# Show the plot
+plt.show()
+
+print("\n\n\n \n ================ \n\n\n")
+
+
+font_color = '#525252'
+colors = ['#f7ecb0', '#ffb3e6', '#99ff99',
+          '#66b3ff', '#c7b3fb', '#ff6666', '#f9c3b7']
+
+fig, axes = plt.subplots(4, 5, figsize=(14, 14), facecolor='#e8f4f0')
+# fig.delaxes(ax=axes[2, 2])
+
+
+# Flatten the 2D array of subplots into a 1D array
+axes = axes.flatten()
+
+
+for i, column_object in enumerate(df.select_dtypes('object')):
+    ax = axes[i]
+    ax.pie(df[column_object].value_counts(),
+           labels=df[column_object].value_counts().values,
+           startangle=30,
+           wedgeprops=dict(width=.5),  # For donuts
+           colors=colors,
+           textprops={'color': font_color})
+    ax.set_title(column_object)
+
+
+plt.show()
+
+
+print("\n\n\n \n ================ \n\n\n")
+
+for col in df.select_dtypes('object'):
+    print(f'{col :.<50} {df[col].unique()}')
+
+
+Influenza_crosstab = pd.crosstab(
+    df['Influenza A'], df['Influenza A, rapid test'])
+print("Influenza_crosstab: \n", Influenza_crosstab)
+
+
+positive_df = df[df['SARS-Cov-2 exam result'] == 'positive']
+
+negative_df = df[df['SARS-Cov-2 exam result'] == 'negative']
+
+missing_rate = df.isna().sum()/df.shape[0]
+
+blood_columns = df.columns[(missing_rate < 0.9) & (missing_rate > 0.88)]
+
+viral_columns = df.columns[(missing_rate < 0.88) & (missing_rate > 0.75)]
+
+
+for col in blood_columns:
+    plt.figure()
+    sns.distplot(positive_df[col], label='positive')
+    sns.distplot(negative_df[col], label='negative')
+    plt.legend()
+
+
+plt.show()
